@@ -1,0 +1,42 @@
+[
+  {
+    "name": "Jaeger-LeCoultre",
+    "price": "฿2,000,000",
+    "image": "Jaeger.png",
+    "color": "0xFF1A237E",
+    "description": "Established in 1833 in the Swiss Jura Mountains, Jaeger-LeCoultre",
+    "pricetag": 2000000
+  },
+  {
+    "name": "A. Lange & Söhne",
+    "price": "฿3,150,000",
+    "image": "Lange.png",
+    "color": "0xFF3E2723",
+    "description": "ff",
+    "pricetag": 3150000
+  },
+  {
+    "name": "Audemars Piguet",
+    "price": "฿1,850,000",
+    "image": "Audemars.png",
+    "color": "0xFFFFEB3B",
+    "description": "ff",
+    "pricetag": 1850000
+  },
+  {
+    "name": "Piaget",
+    "price": "฿4,700,000",
+    "image": "Piaget.png",
+    "color": "0xFF546E7A",
+    "description": "ff",
+    "pricetag": 4700000
+  },
+  {
+    "name": "Cartier",
+    "price": "฿2,890,000",
+    "image": "Cartier.png",
+    "color": "0xFF6F4C41",
+    "description": "ff",
+    "pricetag": 2890000
+  }
+]

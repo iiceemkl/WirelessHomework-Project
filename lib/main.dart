@@ -1,220 +1,223 @@
 import 'package:flutter/material.dart';
-import 'package:hw_flutter_routing_6188055/next.dart';
+import 'dart:convert';
+import 'dart:async';
+import 'package:http/http.dart' as http;
+import 'Product_info.dart';
 
-void main() => runApp(MyApp());
+void main() => runApp(MyApp(products: fetchProducts()));
 
+List<ShopingPullData> parseProducts(String responseBody) {
+  final parsed = json.decode(responseBody).cast<Map<String, dynamic>>();
+  return parsed.map<ShopingPullData>((json) => ShopingPullData.fromMap(json)).toList();
+}
+Future<List<ShopingPullData>> fetchProducts() async {
+  final response = await http.get('http://192.168.56.1:8000/data.json');
+  if (response.statusCode == 200) {
+    return parseProducts(response.body);
+  } else {
+    throw Exception('Somethings error so unable to fetch the product from API');
+  }
+}
 class MyApp extends StatelessWidget {
-  // This widget is the root of your application.
+  final Future<List<ShopingPullData>> products;
+  MyApp({Key key, this.products}) : super(key: key);
 
+  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'Top 5 Watch Brands',
+      title: 'Flutter Watch Shop API',
       theme: ThemeData(
-        primarySwatch: Colors.lightGreen,
+        primarySwatch: Colors.green,
       ),
-      home: MyHomePage(title: 'Watch Shop'),
+      home: MyHomePage(title: 'Product Shop home page', products: products),
     );
   }
 }
-
-class MyHomePage extends StatefulWidget {
-  MyHomePage({Key key, this.title}) : super(key: key);
-
+class MyHomePage extends StatelessWidget {
   final String title;
+  final Future<List<ShopingPullData>> products;
+  MyHomePage({Key key, this.title, this.products}) : super(key: key);
 
-  @override
-  _MyHomePageState createState() => _MyHomePageState();
-}
-
-class _MyHomePageState extends State<MyHomePage> {
-
-
+  // final items = Product.getProducts();
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.title),
-      ),
-      body: SingleChildScrollView(
+        appBar: AppBar(title: Text("Product Details")),
+        body: Center(
+          child: FutureBuilder<List<ShopingPullData>>(
+            future: products, builder: (context, snapshot) {
+            if (snapshot.hasError) print(snapshot.error);
+            return snapshot.hasData ? ProductBoxList(items: snapshot.data)
+
+            // return the ListView widget :
+                : Center(child: CircularProgressIndicator());
+          },
+          ),
+        )
+    );
+  }
+}
+class ProductBoxList extends StatelessWidget {
+  final List<ShopingPullData> items;
+  ProductBoxList({Key key, this.items});
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView.builder(
+      itemCount: items.length,
+      itemBuilder: (context, index) {
+        return GestureDetector(
+          child: ProductBox(item: items[index]),
+          onTap: () {
+            Navigator.push(
+              context, MaterialPageRoute(
+              builder: (context) => ProductPage(item: items[index]),
+            ),
+            );
+          },
+        );
+      },
+    );
+  }
+}
+class ProductPage extends StatelessWidget {
+  ProductPage({Key key, this.item}) : super(key: key);
+  final ShopingPullData item;
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text(this.item.name),),
+      body: Center(
         child: Container(
+          padding: EdgeInsets.all(0),
           child: Column(
-            children: <Widget>[
-              Container(
-                child: Container(
-                  padding: EdgeInsets.symmetric(horizontal: 15, vertical: 15),
-                  height: MediaQuery.of(context).size.height * 0.17,
-                  child: Card(
-                    color: Colors.indigo[900],
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12.0),
-                    ),
-                    elevation: 8,
-                    child: InkWell(
-                      onTap:  () {
-                        Navigator.push(context,MaterialPageRoute(builder: (context){
-                          return MyApp2();
-                        },),);
-                      },
-                      child: Container(
-                        child: ListTile(
-                          leading: CircleAvatar(
-                            backgroundImage: AssetImage('assets/product/Jaeger.png'),
-                          ),
-                          title: Text('Jaeger-LeCoultre'),
-                          subtitle: Text('Price: ฿274,230'),
-
-                          //total += price1;
-                          //final snackBar = SnackBar(content: Text('total Price: $total'));
-                          //Scaffold.of(context).showSnackBar(snackBar);
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              Container(
-                child: Container(
-                  padding: EdgeInsets.symmetric(horizontal: 15, vertical: 15),
-                  height: MediaQuery.of(context).size.height * 0.17,
-                  child: Card(
-                    color: Colors.brown[900],
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12.0),
-                    ),
-                    elevation: 8,
-                    child: InkWell( onTap:  () {
-                      Navigator.push(context,MaterialPageRoute(builder: (context){
-                        return MyApp3();
-                      },),);
-                    },
-                      child: Container(
-                        child: ListTile(
-                          leading: CircleAvatar(
-                            backgroundImage: AssetImage('assets/product/Lange.png'),
-                          ),
-                          title: Text('A. Lange & Söhne'),
-                          subtitle: Text('Price: ฿1,213,860'),
-                          //  trailing: Icon(Icons.add),
-
-                          // total += price2;
-                          //final snackBar = SnackBar(content: Text('total Price: $total'));
-                          //Scaffold.of(context).showSnackBar(snackBar);
-
-                        ),
-                      )
-                      ,)
-                    ,
-                  ),
-                ),
-              ),
-              Container(
-                child: Container(
-                  padding: EdgeInsets.symmetric(horizontal: 15, vertical: 15),
-                  height: MediaQuery.of(context).size.height * 0.17,
-                  child: Card(
-                    color: Colors.amberAccent[700],
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12.0),
-                    ),
-                    elevation: 8,
-                    child: InkWell(
-                      onTap:  () {
-                        Navigator.push(context,MaterialPageRoute(builder: (context){
-                          return MyApp4();
-                        },),);
-                      },
-                      child: Container(
-                        child: ListTile(
-                          leading: CircleAvatar(
-                            backgroundImage: AssetImage('assets/product/Audemars.png'),
-                          ),
-                          title: Text('Audemars Piguet'),
-                          subtitle: Text('Price: ฿2,108,418'),
-                          //  total += price3;
-                          //final snackBar = SnackBar(content: Text('total Price: $total'));
-                          //Scaffold.of(context).showSnackBar(snackBar);
-
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-
-              Container(
-                child: Container(
-                  padding: EdgeInsets.symmetric(horizontal: 15, vertical: 15),
-                  height: MediaQuery.of(context).size.height * 0.17,
-                  child: Card(
-                    color: Colors.grey[350],
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12.0),
-                    ),
-                    elevation: 8,
-                    child: InkWell(
-                      onTap:  () {
-                        Navigator.push(context,MaterialPageRoute(builder: (context){
-                          return MyApp5();
-                        },),);
-                      },
-                      child: Container(
-                        child: ListTile(
-                          leading: CircleAvatar(
-                            backgroundImage: AssetImage('assets/product/Piaget.png'),
-                          ),
-                          title: Text('Piaget'),
-                          subtitle: Text('Price: ฿795,267'),
-                          //     trailing: Icon(Icons.add),
-
-                          //     total += price14;
-                          //   final snackBar = SnackBar(content: Text('total Price: $total'));
-                          //   Scaffold.of(context).showSnackBar(snackBar);
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              Container(
-                child: Container(
-                  padding: EdgeInsets.symmetric(horizontal: 15, vertical: 15),
-                  height: MediaQuery.of(context).size.height * 0.17,
-                  child: Card(
-                    color: Colors.brown[600],
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12.0),
-                    ),
-                    elevation: 8,
-                    child: InkWell(
-                      onTap:  () {
-                        Navigator.push(context,MaterialPageRoute(builder: (context){
-                          return MyApp6();
-                        },),);
-                      },
-                      child: Container(
-                        child: ListTile(
-                          leading: CircleAvatar(
-                            backgroundImage: AssetImage('assets/product/Cartier.png'),
-                          ),
-                          title: Text('Cartier'),
-                          subtitle: Text('Price: ฿144,732'),
-                          //      trailing: Icon(Icons.add),
-
-                          //    total += price15;
-                          //   final snackBar = SnackBar(content: Text('total Price: $total'));
-                          //   Scaffold.of(context).showSnackBar(snackBar);
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ],
+              mainAxisAlignment: MainAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Image.asset("assets/product/" + this.item.image),
+                Expanded(
+                    child: Container(
+                        padding: EdgeInsets.all(5),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: <Widget>[
+                            Text(this.item.name, style:
+                            TextStyle(fontWeight: FontWeight.bold)),
+                            Text(this.item.name),
+                            Text("Price: " + this.item.price.toString()),
+                            RatingBox(),
+                          ],
+                        )
+                    )
+                )
+              ]
           ),
         ),
       ),
+    );
+  }
+}
+class RatingBox extends StatefulWidget {
+  @override
+  _RatingBoxState createState() =>_RatingBoxState();
+}
+class _RatingBoxState extends State<RatingBox> {
+  int _rating = 0;
+  void _setRatingAsOne() {
+    setState(() {
+      _rating = 1;
+    });
+  }
+  void _setRatingAsTwo() {
+    setState(() {
+      _rating = 2;
+    });
+  }
+  void _setRatingAsThree() {
+    setState(() {
+      _rating = 3;
+    });
+  }
+  Widget build(BuildContext context) {
+    double _size = 20;
+    print(_rating);
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.end,
+      crossAxisAlignment: CrossAxisAlignment.end,
+      mainAxisSize: MainAxisSize.max,
+
+      children: <Widget>[
+        Container(
+          padding: EdgeInsets.all(0),
+          child: IconButton(
+            icon: (
+                _rating >= 1
+                    ? Icon(Icons.star, size: _size,)
+                    : Icon(Icons.star_border, size: _size,)
+            ),
+            color: Colors.tealAccent[400], onPressed: _setRatingAsOne, iconSize: _size,
+          ),
+        ),
+        Container(
+          padding: EdgeInsets.all(0),
+          child: IconButton(
+            icon: (
+                _rating >= 2
+                    ? Icon(Icons.star, size: _size,)
+                    : Icon(Icons.star_border, size: _size, )
+            ),
+            color: Colors.tealAccent[400],
+            onPressed: _setRatingAsTwo,
+            iconSize: _size,
+          ),
+        ),
+        Container(
+          padding: EdgeInsets.all(0),
+          child: IconButton(
+            icon: (
+                _rating >= 3 ?
+                Icon(Icons.star, size: _size,)
+                    : Icon(Icons.star_border, size: _size,)
+            ),
+            color: Colors.tealAccent[400],
+            onPressed: _setRatingAsThree,
+            iconSize: _size,
+          ),
+        ),
+      ],
+    );
+  }
+}
+class ProductBox extends StatelessWidget {
+  ProductBox({Key key, this.item}) : super(key: key);
+  final ShopingPullData item;
+
+  Widget build(BuildContext context) {
+    return Container(
+        padding: EdgeInsets.all(2), height: 140,
+        child: Card(
+          child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: <Widget>[
+                Image.asset("assets/product/" + this.item.image),
+                Expanded(
+                    child: Container(
+                        padding: EdgeInsets.all(5),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: <Widget>[
+                            Text(this.item.name, style:TextStyle(fontWeight: FontWeight.bold)),
+                            Text(this.item.name),
+                            Text("Price: " + this.item.price.toString()),
+                            RatingBox(),
+                          ],
+                        )
+                    )
+                )
+              ]
+          ),
+        )
     );
   }
 }
